@@ -71,21 +71,23 @@ func (c mongoClient) disconnectFromMongo() {
 
 }
 
-func (c mongoClient) getMetadataObject(database string, collection string) {
+func (c mongoClient) getMetadataObject(database string, collection string, filter bson.D) {
 
 	log.Infof("Database being queried is %s", database)
+	log.Infof("Looking up the collection name %s", collection)
 
 	metadata := c.client.Database(database).Collection(collection)
-	var result []map[string]interface{}
-	filter := bson.D{{"name", "test"}}
+	cursor, err := metadata.Find(context.TODO(), filter)
 
-	err := metadata.FindOne(context.TODO(), filter).Decode(&result)
+	defer cursor.Close(context.TODO())
+	for cursor.Next(context.TODO()) {
+		var val interface{}
 
-	if err != nil {
-		log.Fatal(err)
+		if err = cursor.Decode(&val); err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(val)
 	}
-
-	log.Infof("Document found: %v\n", result)
 }
 
 // transportConfigMongo is a helper method to setup TLS for the Mongo client.
