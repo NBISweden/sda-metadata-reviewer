@@ -1,0 +1,15 @@
+version: "3.7"
+services:
+  database:
+    image: "mongo"
+    container_name: "mongo"
+    restart: "on-failure"
+    environment:
+      - "MONGO_INITDB_ROOT_USERNAME=datasteward"
+      - "MONGO_INITDB_ROOT_PASSWORD=datasteward"
+    volumes:
+      - "data:/data/db"
+    ports:
+      - "27017:27017"
+volumes:
+  data:
