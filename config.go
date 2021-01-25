@@ -12,7 +12,6 @@ import (
 
 // ClFlags is an struc that holds cl flags info
 type ClFlags struct {
-	object string
 	action string
 }
 
@@ -32,11 +31,10 @@ func NewConfig() *Config {
 	return c
 }
 
-// getCLflags returns the CL args of indexName and action
+// getCLflags returns the given CL options
 func getCLflags() ClFlags {
 
-	flag.String("action", "view", "action can be view")
-	flag.String("object", "", "metadata object to retrieve")
+	flag.String("action", "", "action to perform")
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
@@ -46,9 +44,8 @@ func getCLflags() ClFlags {
 	}
 
 	action := viper.GetString("action")
-	object := viper.GetString("object")
 
-	return ClFlags{object: object, action: action}
+	return ClFlags{action: action}
 
 }
 
@@ -56,7 +53,6 @@ func getCLflags() ClFlags {
 func configMongo() mongoConfig {
 	mongo := mongoConfig{}
 	mongo.authMechanism = viper.GetString("mongo.authMechanism")
-	mongo.database = viper.GetString("mongo.database")
 	mongo.host = viper.GetString("mongo.host")
 	mongo.port = viper.GetInt("mongo.port")
 	mongo.user = viper.GetString("mongo.user")

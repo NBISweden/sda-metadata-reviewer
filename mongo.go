@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"reflect"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson"
+	bson "go.mongodb.org/mongo-driver/bson"
 	mongo "go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -18,7 +19,6 @@ import (
 // mongoConfig is a Struct that holds mongo config
 type mongoConfig struct {
 	authMechanism string
-	database      string
 	host          string
 	port          int
 	user          string
@@ -28,6 +28,28 @@ type mongoConfig struct {
 
 type mongoClient struct {
 	client *mongo.Client
+}
+
+type User struct {
+	ID      string   `bson:"userId"`
+	Name    string   `bson:"name"`
+	Eppn    string   `bson:"eppn"`
+	Folders []string `bson:"folders"`
+}
+
+type Folder struct {
+	ID   string `bson:"folderId"`
+	Name string `bson:"name"`
+}
+
+type MetadataObject struct {
+	AccessionID string `bson:"accessionId"`
+	Schema      string `bson:"schema"`
+}
+
+type MetadataCollection struct {
+	FolderID        string           `bson:"folderId"`
+	MetadataObjects []MetadataObject `bson:"metadataObjects"`
 }
 
 func newMongoClient(config mongoConfig) (*mongoClient, error) {
@@ -71,21 +93,121 @@ func (c mongoClient) disconnectFromMongo() {
 
 }
 
-func (c mongoClient) getMetadataObject(database string, collection string) {
+func (c mongoClient) getFolders(database string, collection string, folderIds []string) {
 
-	log.Infof("Database being queried is %s", database)
+	log.Debugf("Database %s is being queried using the %s collection", database, collection)
 
-	metadata := c.client.Database(database).Collection(collection)
-	var result []map[string]interface{}
-	filter := bson.D{{"name", "test"}}
-
-	err := metadata.FindOne(context.TODO(), filter).Decode(&result)
-
+	users := c.client.Database(database).Collection(collection)
+	filter := bson.M{"folderId": bson.M{"$in": folderIds}}
+	var folders []Folder
+	cursor, err := users.Find(context.TODO(), filter)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+	}
+	err = cursor.All(context.TODO(), &folders)
+	if err != nil {
+		log.Error(err)
+	}
+	for _, obj := range folders {
+		out, err := bson.MarshalExtJSON(obj, false, false)
+		if err != nil {
+			log.Error(err)
+		}
+		fmt.Println(string(out))
+		fmt.Println(strings.Repeat("-", 10))
+	}
+}
+
+func (c mongoClient) getUser(database string, collection string, userID string) User {
+
+	log.Debugf("Database %s is being queried using the %s collection", database, collection)
+
+	filter := bson.M{"userId": userID}
+	users := c.client.Database(database).Collection(collection)
+	var user User
+	err := users.FindOne(context.TODO(), filter).Decode(&user)
+	if err != nil {
+		log.Error(err)
+	}
+	out, err := bson.MarshalExtJSON(user, false, false)
+	if err != nil {
+		log.Error(err)
+	}
+	fmt.Println(string(out))
+	return user
+
+}
+
+func (c mongoClient) getAllUsers(database string, collection string) {
+
+	log.Debugf("Database %s is being queried using the %s collection", database, collection)
+
+	filter := bson.M{}
+	col := c.client.Database(database).Collection(collection)
+	var users []User
+	cursor, err := col.Find(context.TODO(), filter)
+	if err != nil {
+		log.Error(err)
+	}
+	err = cursor.All(context.TODO(), &users)
+	if err != nil {
+		log.Error(err)
+	}
+	for _, usr := range users {
+		out, err := bson.MarshalExtJSON(usr, false, false)
+		if err != nil {
+			log.Error(err)
+		}
+		fmt.Println(string(out))
+		fmt.Println(strings.Repeat("-", 10))
 	}
 
-	log.Infof("Document found: %v\n", result)
+}
+
+func (c mongoClient) getMetadataObjects(database string, collection string, accessionIds []string) {
+
+	log.Debugf("Database %s is being queried using the %s collection", database, collection)
+
+	filter := bson.M{"accessionId": bson.M{"$in": accessionIds}}
+	users := c.client.Database(database).Collection(collection)
+	var objects []interface{}
+	cursor, err := users.Find(context.TODO(), filter)
+	if err != nil {
+		log.Error(err)
+	}
+	err = cursor.All(context.TODO(), &objects)
+	if err != nil {
+		log.Error(err)
+	}
+	for _, obj := range objects {
+		out, err := bson.MarshalExtJSON(obj, false, false)
+		if err != nil {
+			log.Error(err)
+		}
+		log.Infof("Objects found in collection %s", collection)
+		fmt.Println(string(out))
+		fmt.Println(strings.Repeat("-", 10))
+	}
+
+}
+
+func (c mongoClient) getMetadataCollections(database string, collection string, folder []string) []MetadataCollection {
+
+	log.Debugf("Database %s is being queried using the %s collection", database, collection)
+
+	filter := bson.M{"folderId": bson.M{"$in": folder}}
+	users := c.client.Database(database).Collection(collection)
+	var mc []MetadataCollection
+	cursor, err := users.Find(context.TODO(), filter)
+	if err != nil {
+		log.Error(err)
+	}
+	err = cursor.All(context.TODO(), &mc)
+	if err != nil {
+		log.Error(err)
+	}
+	return mc
+
 }
 
 // transportConfigMongo is a helper method to setup TLS for the Mongo client.
