@@ -9,8 +9,9 @@ func main() {
 
 	flags := getCLflags()
 
-	//Defaults to accessionId
+	//Defaults to study
 	collection := flags.collection
+	db := flags.db
 
 	conf := NewConfig()
 
@@ -26,7 +27,7 @@ func main() {
 
 	filter := bson.D{}
 	client.connectToMongo()
-	client.getMetadataObject(conf.mongo.database, collection, filter)
+	client.getMetadataObject(db, collection, filter)
 	client.disconnectFromMongo()
 
 }

@@ -26,5 +26,5 @@ WriteResult({ "nInserted" : 1 })
 
 ```shell
 go build
-./main --collection "accessionId"
+./main --db "metadata" --collection "accessionId"
 ```

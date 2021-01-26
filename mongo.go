@@ -18,7 +18,6 @@ import (
 // mongoConfig is a Struct that holds mongo config
 type mongoConfig struct {
 	authMechanism string
-	database      string
 	host          string
 	port          int
 	user          string

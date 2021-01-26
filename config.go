@@ -13,6 +13,7 @@ import (
 // ClFlags is an struc that holds cl flags info
 type ClFlags struct {
 	collection string
+	db         string
 }
 
 // Config is a parent object for all the different configuration parts
@@ -34,7 +35,8 @@ func NewConfig() *Config {
 // getCLflags returns the CL args for the collection name
 func getCLflags() ClFlags {
 
-	flag.String("collection", "accessionId", "metadata object to retrieve")
+	flag.String("collection", "study", "metadata collection to retrieve")
+	flag.String("db", "objects", "db to query")
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
@@ -44,8 +46,9 @@ func getCLflags() ClFlags {
 	}
 
 	collection := viper.GetString("collection")
+	db := viper.GetString("db")
 
-	return ClFlags{collection: collection}
+	return ClFlags{collection: collection, db: db}
 
 }
 
@@ -53,7 +56,6 @@ func getCLflags() ClFlags {
 func configMongo() mongoConfig {
 	mongo := mongoConfig{}
 	mongo.authMechanism = viper.GetString("mongo.authMechanism")
-	mongo.database = viper.GetString("mongo.database")
 	mongo.host = viper.GetString("mongo.host")
 	mongo.port = viper.GetInt("mongo.port")
 	mongo.user = viper.GetString("mongo.user")
