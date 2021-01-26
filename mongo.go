@@ -10,7 +10,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson"
+	bson "go.mongodb.org/mongo-driver/bson"
 	mongo "go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -77,15 +77,18 @@ func (c mongoClient) getMetadataObject(database string, collection string, filte
 
 	metadata := c.client.Database(database).Collection(collection)
 	cursor, err := metadata.Find(context.TODO(), filter)
-
 	defer cursor.Close(context.TODO())
-	for cursor.Next(context.TODO()) {
-		var val interface{}
 
-		if err = cursor.Decode(&val); err != nil {
-			log.Fatal(err)
+	if err != nil {
+		log.Info(err)
+	}
+
+	for cursor.Next(context.TODO()) {
+		res, err := bson.MarshalExtJSON(cursor.Current, true, true)
+		if err != nil {
+			log.Info(err)
 		}
-		fmt.Println(val)
+		fmt.Println(string(res))
 	}
 }
 
