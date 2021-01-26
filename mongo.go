@@ -86,9 +86,6 @@ func (c mongoClient) getMetadataObject(database string, collection string, filte
 			log.Fatal(err)
 		}
 		fmt.Println(val)
-		if err != nil {
-			panic(err)
-		}
 	}
 }
 
