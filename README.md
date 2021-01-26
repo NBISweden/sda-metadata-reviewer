@@ -1,23 +1,28 @@
 # Querying collections in the metadata store
+
+
+## Dependency
+
+```shell
+brew install mongodb-community
+```
 ## Start the mongo server
 
 ```shell
 cd dev_tools/
 docker-compose up -d
 ```
-
-## Poupulating a database
+## Exporting a mongo dump
 
 ```shell
-docker exec -it mongo sh
-
-# mongo -u admin -p admin
-
-> use objects
-> db.study.insert({"id": "1", "drafts" : [], "folders": ["4dd7cbac927e4da48fc2a37cb9965a22", "6e84b03667ba4d5ca5f02d4c87834ce0", "7039a8ed04184f4798f47687c027b13a"], "userId": "user001", "name": "se123", "eppn": "test"})
-> db.study.insert({"id": "1", "drafts" : [], "folders": ["4dd7cbac927e4da48fc2a37cb9965a22", "6e84b03667ba4d5ca5f02d4c87834ce0", "7039a8ed04184f4798f47687c027b13a"], "userId": "user002", "name": "se124", "eppn": "test"})
+mongodump -u admin -p admin > metadata.bson
 ```
 
+## Restoring a mongo dump
+
+```shell
+mongorestore -u admin -p admin metadata.bson
+```
 
 ## Define a filter
 
@@ -31,8 +36,4 @@ docker exec -it mongo sh
 ```shell
 go build
 ./main --db "objects" --collection "study"
-```
-
-```json
-
 ```

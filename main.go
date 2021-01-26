@@ -30,7 +30,7 @@ func main() {
 		log.Info(err)
 	}
 	var doc interface{}
-	err = bson.UnmarshalExtJSON(jsonFilter, true, &doc)
+	err = bson.UnmarshalExtJSON(jsonFilter, false, &doc)
 	if err != nil {
 		log.Info(err)
 	}

@@ -84,7 +84,7 @@ func (c mongoClient) getMetadataObject(database string, collection string, filte
 	}
 
 	for cursor.Next(context.TODO()) {
-		res, err := bson.MarshalExtJSON(cursor.Current, true, true)
+		res, err := bson.MarshalExtJSON(cursor.Current, false, true)
 		if err != nil {
 			log.Info(err)
 		}
