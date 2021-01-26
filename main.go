@@ -1,8 +1,11 @@
 package main
 
 import (
+	"io/ioutil"
+
 	"github.com/prometheus/common/log"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func main() {
@@ -11,6 +14,7 @@ func main() {
 
 	//Defaults to study
 	collection := flags.collection
+	//Defaults to objects
 	db := flags.db
 
 	conf := NewConfig()
@@ -21,13 +25,18 @@ func main() {
 		log.Info(err)
 	}
 
-	// -- BSON object examples --
-	// filter := bson.D{{"id", "SEGA6543"}}
-	// filter := bson.D{{"id", "SEGA6543"}, {"owner", "user1234"}}
+	jsonFilter, err := ioutil.ReadFile("filter.json")
+	if err != nil {
+		log.Info(err)
+	}
+	var doc interface{}
+	err = bson.UnmarshalExtJSON(jsonFilter, true, &doc)
+	if err != nil {
+		log.Info(err)
+	}
 
-	filter := bson.D{}
 	client.connectToMongo()
-	client.getMetadataObject(db, collection, filter)
+	client.getMetadataObject(db, collection, doc.(primitive.D))
 	client.disconnectFromMongo()
 
 }
