@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"reflect"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -27,6 +28,20 @@ type mongoConfig struct {
 
 type mongoClient struct {
 	client *mongo.Client
+}
+
+type User struct {
+	ID      string   `bson:"userId"`
+	Folders []string `bson:"folders"`
+}
+
+type MetadataObject struct {
+	AccessionID string `bson:"accessionId"`
+	Schema      string `bson:"schema"`
+}
+
+type MetadataCollection struct {
+	MetadataObjects []MetadataObject `bson:"metadataObjects"`
 }
 
 func newMongoClient(config mongoConfig) (*mongoClient, error) {
@@ -70,26 +85,37 @@ func (c mongoClient) disconnectFromMongo() {
 
 }
 
-func (c mongoClient) getMetadataObject(database string, collection string, filter bson.D) {
+func (c mongoClient) getUserFolders(database string, collection string, filter bson.D) []string {
 
-	log.Infof("Database being queried is %s", database)
-	log.Infof("Looking up the collection name %s", collection)
+	log.Infof("Database %s is being queried using the %s collection", database, collection)
 
-	metadata := c.client.Database(database).Collection(collection)
-	cursor, err := metadata.Find(context.TODO(), filter)
-	defer cursor.Close(context.TODO())
-
+	users := c.client.Database(database).Collection(collection)
+	var user User
+	var df interface{}
+	err := users.FindOne(context.TODO(), filter).Decode(&user)
+	err = users.FindOne(context.TODO(), filter).Decode(&df)
+	log.Info(df)
 	if err != nil {
 		log.Info(err)
 	}
+	log.Debugf("User %s has folders : %s", user.ID, strings.Join(user.Folders, ","))
+	return user.Folders
 
-	for cursor.Next(context.TODO()) {
-		res, err := bson.MarshalExtJSON(cursor.Current, false, true)
-		if err != nil {
-			log.Info(err)
-		}
-		fmt.Println(string(res))
+}
+
+func (c mongoClient) getMetadataObjects(database string, collection string, folder string) {
+
+	log.Infof("Database %s is being queried using the %s collection", database, collection)
+
+	filter := bson.M{"folderId": folder}
+	users := c.client.Database(database).Collection(collection)
+	var mc MetadataCollection
+	err := users.FindOne(context.TODO(), filter).Decode(&mc)
+	if err != nil {
+		log.Info(err)
 	}
+	log.Info(mc)
+
 }
 
 // transportConfigMongo is a helper method to setup TLS for the Mongo client.

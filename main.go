@@ -10,12 +10,11 @@ import (
 
 func main() {
 
-	flags := getCLflags()
-
+	//flags := getCLflags()
 	//Defaults to study
-	collection := flags.collection
+	//collection := flags.collection
 	//Defaults to objects
-	db := flags.db
+	//db := flags.db
 
 	conf := NewConfig()
 
@@ -36,7 +35,14 @@ func main() {
 	}
 
 	client.connectToMongo()
-	client.getMetadataObject(db, collection, doc.(primitive.D))
+	var userFolders []string
+
+	userFolders = client.getUserFolders("users", "user", doc.(primitive.D))
+	for _, folder := range userFolders {
+		client.getMetadataObjects("folders", "folder", folder)
+
+	}
+
 	client.disconnectFromMongo()
 
 }
