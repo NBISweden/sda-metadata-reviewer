@@ -91,10 +91,7 @@ func (c mongoClient) getUserFolders(database string, collection string, filter b
 
 	users := c.client.Database(database).Collection(collection)
 	var user User
-	var df interface{}
 	err := users.FindOne(context.TODO(), filter).Decode(&user)
-	err = users.FindOne(context.TODO(), filter).Decode(&df)
-	log.Info(df)
 	if err != nil {
 		log.Info(err)
 	}
@@ -103,14 +100,18 @@ func (c mongoClient) getUserFolders(database string, collection string, filter b
 
 }
 
-func (c mongoClient) getMetadataObjects(database string, collection string, folder string) {
+func (c mongoClient) getMetadataObjects(database string, collection string, folder []string) {
 
 	log.Infof("Database %s is being queried using the %s collection", database, collection)
 
-	filter := bson.M{"folderId": folder}
+	filter := bson.M{"folderId": bson.M{"$in": folder}}
 	users := c.client.Database(database).Collection(collection)
-	var mc MetadataCollection
-	err := users.FindOne(context.TODO(), filter).Decode(&mc)
+	var mc []MetadataCollection
+	cursor, err := users.Find(context.TODO(), filter)
+	if err != nil {
+		log.Info(err)
+	}
+	err = cursor.All(context.TODO(), &mc)
 	if err != nil {
 		log.Info(err)
 	}

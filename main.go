@@ -38,10 +38,7 @@ func main() {
 	var userFolders []string
 
 	userFolders = client.getUserFolders("users", "user", doc.(primitive.D))
-	for _, folder := range userFolders {
-		client.getMetadataObjects("folders", "folder", folder)
-
-	}
+	client.getMetadataObjects("folders", "folder", userFolders)
 
 	client.disconnectFromMongo()
 
