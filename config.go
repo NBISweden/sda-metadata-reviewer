@@ -13,7 +13,6 @@ import (
 // ClFlags is an struc that holds cl flags info
 type ClFlags struct {
 	collection string
-	db         string
 }
 
 // Config is a parent object for all the different configuration parts
@@ -36,7 +35,6 @@ func NewConfig() *Config {
 func getCLflags() ClFlags {
 
 	flag.String("collection", "study", "metadata collection to retrieve")
-	flag.String("db", "objects", "db to query")
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
@@ -46,9 +44,8 @@ func getCLflags() ClFlags {
 	}
 
 	collection := viper.GetString("collection")
-	db := viper.GetString("db")
 
-	return ClFlags{collection: collection, db: db}
+	return ClFlags{collection: collection}
 
 }
 

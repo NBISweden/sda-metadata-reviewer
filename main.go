@@ -43,31 +43,39 @@ func main() {
 
 	client.connectToMongo()
 
-	var userFolders []string
+	col := getCLflags().collection
 
-	if metadataFilter.FolderID != "" {
-		userFolders = append(userFolders, metadataFilter.FolderID)
+	if col == "users" {
+		client.getAllUsers("users", "user")
 	} else {
-		userFolders = client.getUserFolders("users", "user", metadataFilter.UserID)
-	}
 
-	metadataCollections := client.getMetadataCollections("folders", "folder", userFolders)
+		var userFolders []string
 
-	var accessionIds []string
-	var schemas []string
+		if metadataFilter.FolderID != "" {
+			userFolders = append(userFolders, metadataFilter.FolderID)
+		} else {
+			userFolders = client.getUserFolders("users", "user", metadataFilter.UserID)
+		}
 
-	if metadataFilter.AccessionID != "" {
-		accessionIds = append(accessionIds, metadataFilter.AccessionID)
-		_, schemas = getAccessionIdsAndSchemas(metadataCollections)
-	} else {
-		accessionIds, schemas = getAccessionIdsAndSchemas(metadataCollections)
-	}
+		metadataCollections := client.getMetadataCollections("folders", "folder", userFolders)
 
-	log.Debugf("Accession ids are: %s", strings.Join(accessionIds, " "))
-	log.Debugf("Schemas are: %s", strings.Join(schemas, " "))
+		var accessionIds []string
+		var schemas []string
 
-	for _, sch := range schemas {
-		client.getMetadataObjects("objects", sch, accessionIds)
+		if metadataFilter.AccessionID != "" {
+			accessionIds = append(accessionIds, metadataFilter.AccessionID)
+			_, schemas = getAccessionIdsAndSchemas(metadataCollections)
+		} else {
+			accessionIds, schemas = getAccessionIdsAndSchemas(metadataCollections)
+		}
+
+		log.Debugf("Accession ids are: %s", strings.Join(accessionIds, " "))
+		log.Debugf("Schemas are: %s", strings.Join(schemas, " "))
+
+		for _, sch := range schemas {
+			client.getMetadataObjects("objects", sch, accessionIds)
+		}
+
 	}
 	client.disconnectFromMongo()
 

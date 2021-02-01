@@ -114,6 +114,29 @@ func removeStrDuplicates(elements []string) []string {
 	return res
 }
 
+func (c mongoClient) getAllUsers(database string, collection string) {
+
+	log.Debugf("Database %s is being queried using the %s collection", database, collection)
+
+	users := c.client.Database(database).Collection(collection)
+	var userSlice []User
+	cursor, err := users.Find(context.TODO(), bson.M{})
+	if err != nil {
+		log.Error(err)
+	}
+	err = cursor.All(context.TODO(), &userSlice)
+	if err != nil {
+		log.Error(err)
+	}
+	for _, obj := range userSlice {
+		out, err := bson.MarshalExtJSON(obj, false, false)
+		if err != nil {
+			log.Error(err)
+		}
+		fmt.Println(string(out))
+	}
+}
+
 func (c mongoClient) getUserFolders(database string, collection string, userID string) []string {
 
 	log.Debugf("Database %s is being queried using the %s collection", database, collection)
@@ -174,7 +197,6 @@ func (c mongoClient) getMetadataCollections(database string, collection string, 
 	if err != nil {
 		log.Info(err)
 	}
-	//log.Info(mc)
 	return mc
 
 }
