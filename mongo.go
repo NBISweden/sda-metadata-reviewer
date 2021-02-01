@@ -41,6 +41,7 @@ type MetadataObject struct {
 }
 
 type MetadataCollection struct {
+	FolderID        string           `bson:"folderId"`
 	MetadataObjects []MetadataObject `bson:"metadataObjects"`
 }
 
@@ -85,10 +86,39 @@ func (c mongoClient) disconnectFromMongo() {
 
 }
 
-func (c mongoClient) getUserFolders(database string, collection string, filter bson.D) []string {
+func getAccessionIdsAndSchemas(metadataCollections []MetadataCollection) ([]string, []string) {
 
-	log.Infof("Database %s is being queried using the %s collection", database, collection)
+	var schemas []string
+	var accessionIds []string
 
+	for _, col := range metadataCollections {
+		for _, obj := range col.MetadataObjects {
+			accessionIds = append(accessionIds, obj.AccessionID)
+			schemas = append(schemas, obj.Schema)
+		}
+	}
+	return removeStrDuplicates(accessionIds), removeStrDuplicates(schemas)
+}
+
+func removeStrDuplicates(elements []string) []string {
+	encountered := map[string]bool{}
+	res := []string{}
+
+	for v := range elements {
+		if encountered[elements[v]] == true {
+		} else {
+			encountered[elements[v]] = true
+			res = append(res, elements[v])
+		}
+	}
+	return res
+}
+
+func (c mongoClient) getUserFolders(database string, collection string, userID string) []string {
+
+	log.Debugf("Database %s is being queried using the %s collection", database, collection)
+
+	filter := bson.M{"userId": userID}
 	users := c.client.Database(database).Collection(collection)
 	var user User
 	err := users.FindOne(context.TODO(), filter).Decode(&user)
@@ -100,9 +130,30 @@ func (c mongoClient) getUserFolders(database string, collection string, filter b
 
 }
 
-func (c mongoClient) getMetadataObjects(database string, collection string, folder []string) {
+func (c mongoClient) getMetadataObjects(database string, collection string, accessionIds []string) {
 
-	log.Infof("Database %s is being queried using the %s collection", database, collection)
+	log.Debugf("Database %s is being queried using the %s collection", database, collection)
+	filter := bson.M{"accessionId": bson.M{"$in": accessionIds}}
+	users := c.client.Database(database).Collection(collection)
+	var objects []interface{}
+	cursor, err := users.Find(context.TODO(), filter)
+	if err != nil {
+		log.Info(err)
+	}
+	err = cursor.All(context.TODO(), &objects)
+	if err != nil {
+		log.Info(err)
+	}
+	log.Infof("Objects found in collection %s", collection)
+	log.Infoln(strings.Repeat("-", 10))
+	log.Info(objects)
+	log.Infoln(strings.Repeat("-", 10))
+
+}
+
+func (c mongoClient) getMetadataCollections(database string, collection string, folder []string) []MetadataCollection {
+
+	log.Debugf("Database %s is being queried using the %s collection", database, collection)
 
 	filter := bson.M{"folderId": bson.M{"$in": folder}}
 	users := c.client.Database(database).Collection(collection)
@@ -115,7 +166,8 @@ func (c mongoClient) getMetadataObjects(database string, collection string, fold
 	if err != nil {
 		log.Info(err)
 	}
-	log.Info(mc)
+	//log.Info(mc)
+	return mc
 
 }
 

@@ -9,4 +9,5 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/tidwall/gjson v1.6.7
 	go.mongodb.org/mongo-driver v1.4.5
+	gopkg.in/square/go-jose.v2 v2.5.1
 )
