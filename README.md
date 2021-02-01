@@ -28,12 +28,14 @@ mongorestore -u admin -p admin metadata.bson
 
 ```json
 {
-    "userId": "user001"
+    "userId": "4153a24c78fb4f4f98cd50f5e05f577c",
+    "folderId": "6f936ffa72874241a5d78cc9c8b6ddfe",
+    "accessionId": ""
 }
 ```
 ## Querying the metadata store
 
 ```shell
 go build
-./main --db "objects" --collection "study"
+./main 2>/dev/null
 ```

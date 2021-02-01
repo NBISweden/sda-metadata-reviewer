@@ -8,6 +8,9 @@ import (
 	"gopkg.in/square/go-jose.v2/json"
 )
 
+// List all folder names together with their ids and user ids
+// JSON output on stdout
+
 type metadataFilter struct {
 	UserID      string `json:"userId"`
 	FolderID    string `json:"folderId"`

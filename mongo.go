@@ -123,7 +123,7 @@ func (c mongoClient) getUserFolders(database string, collection string, userID s
 	var user User
 	err := users.FindOne(context.TODO(), filter).Decode(&user)
 	if err != nil {
-		log.Info(err)
+		log.Error(err)
 	}
 	log.Debugf("User %s has folders : %s", user.ID, strings.Join(user.Folders, ","))
 	return user.Folders
@@ -138,15 +138,23 @@ func (c mongoClient) getMetadataObjects(database string, collection string, acce
 	var objects []interface{}
 	cursor, err := users.Find(context.TODO(), filter)
 	if err != nil {
-		log.Info(err)
+		log.Error(err)
 	}
 	err = cursor.All(context.TODO(), &objects)
 	if err != nil {
-		log.Info(err)
+		log.Error(err)
 	}
+	for _, obj := range objects {
+		out, err := bson.MarshalExtJSON(obj, false, false)
+		if err != nil {
+			log.Error(err)
+		}
+		fmt.Println(string(out))
+
+	}
+
 	log.Infof("Objects found in collection %s", collection)
 	log.Infoln(strings.Repeat("-", 10))
-	log.Info(objects)
 	log.Infoln(strings.Repeat("-", 10))
 
 }
