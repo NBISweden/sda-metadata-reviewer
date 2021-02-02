@@ -12,7 +12,7 @@ import (
 // JSON output on stdout
 
 type metadataFilter struct {
-	UserID      string `json:"userId"`
+	Username    string `json:"username"`
 	FolderID    string `json:"folderId"`
 	AccessionID string `json:"accessionId"`
 }
@@ -31,11 +31,10 @@ func main() {
 	if err != nil {
 		log.Error(err)
 	}
-	//jsonFilter := `{"userId": "4153a24c78fb4f4f98cd50f5e05f577c", "folderId": "76566fb39a7644a7957940ffca0aca99", "accessionId": "06c56cbc9290475397f169db800155c5"}`
 	log.Debug(string(jsonFilter))
 
 	metadataFilter := metadataFilter{}
-	err = json.Unmarshal([]byte(jsonFilter), &metadataFilter)
+	err = json.Unmarshal(jsonFilter, &metadataFilter)
 
 	if err != nil {
 		log.Error(err)
@@ -43,37 +42,42 @@ func main() {
 
 	client.connectToMongo()
 
-	col := getCLflags().collection
+	action := getCLflags().action
 
-	if col == "users" {
-		client.getAllUsers("users", "user")
-	} else {
-
-		var userFolders []string
-
-		if metadataFilter.FolderID != "" {
-			userFolders = append(userFolders, metadataFilter.FolderID)
-		} else {
-			userFolders = client.getUserFolders("users", "user", metadataFilter.UserID)
+	switch action {
+	case "list-folders":
+		{
+			user := client.getUser("users", "user", metadataFilter.Username)
+			client.getFolders("folders", "folder", user.Folders)
 		}
+	case "list-objects":
+		{
+			var userFolders []string
 
-		metadataCollections := client.getMetadataCollections("folders", "folder", userFolders)
+			if metadataFilter.FolderID != "" {
+				userFolders = append(userFolders, metadataFilter.FolderID)
+			} else {
+				userFolders = client.getUser("users", "user", metadataFilter.Username).Folders
+			}
 
-		var accessionIds []string
-		var schemas []string
+			metadataCollections := client.getMetadataCollections("folders", "folder", userFolders)
 
-		if metadataFilter.AccessionID != "" {
-			accessionIds = append(accessionIds, metadataFilter.AccessionID)
-			_, schemas = getAccessionIdsAndSchemas(metadataCollections)
-		} else {
-			accessionIds, schemas = getAccessionIdsAndSchemas(metadataCollections)
-		}
+			var accessionIds []string
+			var schemas []string
 
-		log.Debugf("Accession ids are: %s", strings.Join(accessionIds, " "))
-		log.Debugf("Schemas are: %s", strings.Join(schemas, " "))
+			if metadataFilter.AccessionID != "" {
+				accessionIds = append(accessionIds, metadataFilter.AccessionID)
+				_, schemas = getAccessionIdsAndSchemas(metadataCollections)
+			} else {
+				accessionIds, schemas = getAccessionIdsAndSchemas(metadataCollections)
+			}
 
-		for _, sch := range schemas {
-			client.getMetadataObjects("objects", sch, accessionIds)
+			log.Debugf("Accession ids are: %s", strings.Join(accessionIds, " "))
+			log.Debugf("Schemas are: %s", strings.Join(schemas, " "))
+
+			for _, sch := range schemas {
+				client.getMetadataObjects("objects", sch, accessionIds)
+			}
 		}
 
 	}

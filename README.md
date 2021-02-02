@@ -15,7 +15,7 @@ docker-compose up -d
 ## Exporting a mongo dump
 
 ```shell
-mongodump -u admin -p admin > metadata.bson
+mongodump -u admin -p admin
 ```
 
 ## Restoring a mongo dump
@@ -24,18 +24,39 @@ mongodump -u admin -p admin > metadata.bson
 mongorestore -u admin -p admin metadata.bson
 ```
 
-## Define a filter
+## Reviewing the submission metadata
+
+ Minimally the username needs to be provided in the `filter.json` file to fetch the folder identifiers that belong to a user's submission folder. To obtain them, fill in the username in the aforementioned file:
 
 ```json
 {
-    "userId": "4153a24c78fb4f4f98cd50f5e05f577c",
-    "folderId": "6f936ffa72874241a5d78cc9c8b6ddfe",
-    "accessionId": ""
+    "username": "test test"
 }
 ```
-## Querying the metadata store
 
 ```shell
-go build
-./main 2>/dev/null
+./main --action list-folders
+```
+
+Now find the folder id of the submission and specify it in the `filter.json` file:
+
+```json
+{
+    "folderId": "d28e77a17a6a4c19ac53891a678054a5"
+}
+```
+
+- In order to fetch all user specific metadata objects from a given folder run:
+
+```shell
+./main --action list-objects
+```
+
+* If you only want to see the metadata from a given metadata object, it is possible to specify its accessionId as a filter.
+
+```json
+{
+    "folderId": "d28e77a17a6a4c19ac53891a678054a5",
+    "accessionId": ""
+}
 ```

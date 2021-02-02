@@ -5,4 +5,4 @@ mongo:
   user: "admin"
   password: "admin"
   cacert: ""
-loglevel: "debug"
+loglevel: "info"

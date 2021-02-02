@@ -12,7 +12,7 @@ import (
 
 // ClFlags is an struc that holds cl flags info
 type ClFlags struct {
-	collection string
+	action string
 }
 
 // Config is a parent object for all the different configuration parts
@@ -31,10 +31,10 @@ func NewConfig() *Config {
 	return c
 }
 
-// getCLflags returns the CL args for the collection name
+// getCLflags returns the given CL options
 func getCLflags() ClFlags {
 
-	flag.String("collection", "study", "metadata collection to retrieve")
+	flag.String("action", "", "action to perform")
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
@@ -43,9 +43,9 @@ func getCLflags() ClFlags {
 		log.Fatalf("Could not bind process flags for commandline: %v", err)
 	}
 
-	collection := viper.GetString("collection")
+	action := viper.GetString("action")
 
-	return ClFlags{collection: collection}
+	return ClFlags{action: action}
 
 }
 
