@@ -12,7 +12,7 @@ import (
 // JSON output on stdout
 
 type metadataFilter struct {
-	Username    string `json:"username"`
+	UserID      string `json:"userId"`
 	FolderID    string `json:"folderId"`
 	AccessionID string `json:"accessionId"`
 }
@@ -47,7 +47,7 @@ func main() {
 	switch action {
 	case "list-folders":
 		{
-			user := client.getUser("users", "user", metadataFilter.Username)
+			user := client.getUser("users", "user", metadataFilter.UserID)
 			client.getFolders("folders", "folder", user.Folders)
 		}
 	case "list-objects":
@@ -57,7 +57,7 @@ func main() {
 			if metadataFilter.FolderID != "" {
 				userFolders = append(userFolders, metadataFilter.FolderID)
 			} else {
-				userFolders = client.getUser("users", "user", metadataFilter.Username).Folders
+				userFolders = client.getUser("users", "user", metadataFilter.UserID).Folders
 			}
 
 			metadataCollections := client.getMetadataCollections("folders", "folder", userFolders)
@@ -78,6 +78,10 @@ func main() {
 			for _, sch := range schemas {
 				client.getMetadataObjects("objects", sch, accessionIds)
 			}
+		}
+	case "list-users":
+		{
+			client.getAllUsers("users", "user")
 		}
 
 	}

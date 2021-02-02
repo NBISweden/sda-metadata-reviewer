@@ -26,11 +26,17 @@ mongorestore -u admin -p admin metadata.bson
 
 ## Reviewing the submission metadata
 
- Minimally the username needs to be provided in the `filter.json` file to fetch the folder identifiers that belong to a user's submission folder. To obtain them, fill in the username in the aforementioned file:
+- Find the user that you want to review the submission for:
+
+```shell
+./main --action list-users
+```
+
+ Minimally the user id needs to be provided in the `filter.json` file to fetch the folder identifiers that belong to a user's submission folder. To obtain them, fill in the user id in the aforementioned file:
 
 ```json
 {
-    "username": "test test"
+    "userId": "myuserid"
 }
 ```
 

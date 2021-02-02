@@ -118,11 +118,11 @@ func (c mongoClient) getFolders(database string, collection string, folderIds []
 	}
 }
 
-func (c mongoClient) getUser(database string, collection string, username string) User {
+func (c mongoClient) getUser(database string, collection string, userID string) User {
 
 	log.Debugf("Database %s is being queried using the %s collection", database, collection)
 
-	filter := bson.M{"name": username}
+	filter := bson.M{"userId": userID}
 	users := c.client.Database(database).Collection(collection)
 	var user User
 	err := users.FindOne(context.TODO(), filter).Decode(&user)
@@ -135,6 +135,32 @@ func (c mongoClient) getUser(database string, collection string, username string
 	}
 	fmt.Println(string(out))
 	return user
+
+}
+
+func (c mongoClient) getAllUsers(database string, collection string) {
+
+	log.Debugf("Database %s is being queried using the %s collection", database, collection)
+
+	filter := bson.M{}
+	col := c.client.Database(database).Collection(collection)
+	var users []User
+	cursor, err := col.Find(context.TODO(), filter)
+	if err != nil {
+		log.Info(err)
+	}
+	err = cursor.All(context.TODO(), &users)
+	if err != nil {
+		log.Info(err)
+	}
+	for _, usr := range users {
+		out, err := bson.MarshalExtJSON(usr, false, false)
+		if err != nil {
+			log.Error(err)
+		}
+		fmt.Println(string(out))
+		fmt.Println(strings.Repeat("-", 10))
+	}
 
 }
 
