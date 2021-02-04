@@ -45,11 +45,18 @@ type Folder struct {
 type MetadataObject struct {
 	AccessionID string `bson:"accessionId"`
 	Schema      string `bson:"schema"`
+	Files       []File `bson:"files"`
 }
 
 type MetadataCollection struct {
 	FolderID        string           `bson:"folderId"`
 	MetadataObjects []MetadataObject `bson:"metadataObjects"`
+}
+
+type File struct {
+	FileName       string `bson:"filename"`
+	ChecksumMethod string `bson:"checksumMethod"`
+	Checksum       string `bson:"checksum"`
 }
 
 func newMongoClient(config mongoConfig) (*mongoClient, error) {
@@ -236,4 +243,60 @@ func transportConfigMongo(config mongoConfig) *tls.Config {
 	}
 
 	return cfg
+}
+
+func (c mongoClient) getFilesFromAnalysis(database string, collection string, accessionID string) (files []string) {
+	//var files []string
+	log.Debugf("Database %s is being queried using the %s collection", database, collection)
+
+	filter := bson.M{"accessionId": accessionID}
+	client := c.client.Database(database).Collection(collection)
+	objects := []MetadataObject{}
+	cursor, err := client.Find(context.TODO(), filter)
+	if err != nil {
+		log.Error(err)
+	}
+	err = cursor.All(context.TODO(), &objects)
+	if err != nil {
+		log.Error(err)
+	}
+	//log.Infof("Objects %s", objects)
+
+	for _, obj := range objects {
+		for _, file := range obj.Files {
+			files = append(files, file.FileName)
+		}
+	}
+
+	return files
+
+}
+
+func (c mongoClient) getAccessionFromAnalysis(database string, collection string, folderID string) string {
+	var accession string
+	log.Debugf("Database %s is being queried using the %s collection", database, collection)
+
+	filter := bson.M{"folderId": folderID}
+	client := c.client.Database(database).Collection(collection)
+	objects := []MetadataCollection{}
+	//ar objects []interface{}
+	cursor, err := client.Find(context.TODO(), filter)
+	if err != nil {
+		log.Error(err)
+	}
+	err = cursor.All(context.TODO(), &objects)
+	if err != nil {
+		log.Error(err)
+	}
+
+	for _, obj := range objects {
+		for _, schema := range obj.MetadataObjects {
+			if schema.Schema == "analysis" {
+				accession = schema.AccessionID
+			}
+		}
+	}
+
+	return accession
+
 }

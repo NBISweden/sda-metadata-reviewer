@@ -27,6 +27,12 @@ func main() {
 		log.Error(err)
 	}
 
+	inbox, err := newS3Backend(conf.s3)
+	if err != nil {
+		log.Error(err)
+	}
+	log.Debug(inbox)
+
 	jsonFilter, err := ioutil.ReadFile("filter.json")
 	if err != nil {
 		log.Error(err)
@@ -35,7 +41,6 @@ func main() {
 
 	metadataFilter := metadataFilter{}
 	err = json.Unmarshal(jsonFilter, &metadataFilter)
-
 	if err != nil {
 		log.Error(err)
 	}
@@ -82,6 +87,31 @@ func main() {
 	case "list-users":
 		{
 			client.getAllUsers("users", "user")
+		}
+	case "cross-ref":
+		{
+			var analysisAccession string
+			if metadataFilter.AccessionID != "" {
+				analysisAccession = metadataFilter.AccessionID
+			} else if metadataFilter.FolderID != "" {
+				analysisAccession = client.getAccessionFromAnalysis("folders", "folder", metadataFilter.FolderID)
+				//log.Infof(analysisAccession)
+			}
+
+			files := client.getFilesFromAnalysis("objects", "analysis", analysisAccession)
+
+			for _, file := range files {
+				exists, err := inbox.GetFileSize(file)
+				if err != nil {
+					log.Debugf("Error accessing s3: %s", err)
+					break
+				}
+				if exists {
+					log.Infof("File %s exists", file)
+				} else {
+					log.Infof("File %s does not exist", file)
+				}
+			}
 		}
 
 	}

@@ -5,4 +5,11 @@ mongo:
   user: "admin"
   password: "admin"
   cacert: ""
+s3:
+  url: "http://localhost"
+  port: 9000
+  accesskey: "access"
+  secretkey: "secretkey"
+  bucket: "inbox"
+  chunksize: 5
 loglevel: "info"

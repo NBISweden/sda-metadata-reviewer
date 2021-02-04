@@ -4,6 +4,7 @@ import (
 	"flag"
 	"path"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
@@ -18,6 +19,7 @@ type ClFlags struct {
 // Config is a parent object for all the different configuration parts
 type Config struct {
 	mongo mongoConfig
+	s3    S3Config
 }
 
 // NewConfig initializes and parses the config file and/or environment using
@@ -65,9 +67,44 @@ func configMongo() mongoConfig {
 	return mongo
 }
 
+// configmongo populates a mongoConfig
+func configS3() S3Config {
+	s3 := S3Config{}
+
+	s3.URL = viper.GetString("s3.url")
+	s3.AccessKey = viper.GetString("s3.accesskey")
+	s3.SecretKey = viper.GetString("s3.secretkey")
+	s3.Bucket = viper.GetString("s3.bucket")
+
+	// Defaults (move to viper?)
+
+	s3.Port = 443
+	s3.Region = "us-east-1"
+	s3.NonExistRetryTime = 2 * time.Minute
+
+	if viper.IsSet("s3.port") {
+		s3.Port = viper.GetInt("s3.port")
+	}
+
+	if viper.IsSet("s3.region") {
+		s3.Region = viper.GetString("s3.region")
+	}
+
+	if viper.IsSet("s3.chunksize") {
+		s3.Chunksize = viper.GetInt("s3.chunksize") * 1024 * 1024
+	}
+
+	if viper.IsSet("s3.cacert") {
+		s3.Cacert = viper.GetString("s3.cacert")
+	}
+
+	return s3
+}
+
 func (c *Config) readConfig() {
 
 	c.mongo = configMongo()
+	c.s3 = configS3()
 
 	if viper.IsSet("loglevel") {
 		stringLevel := viper.GetString("loglevel")
