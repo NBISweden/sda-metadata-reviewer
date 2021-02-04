@@ -43,9 +43,9 @@ type Folder struct {
 }
 
 type MetadataObject struct {
-	AccessionID string  `bson:"accessionId"`
-	Schema      string  `bson:"schema"`
-	Files       []Files `bson:"files"`
+	AccessionID string `bson:"accessionId"`
+	Schema      string `bson:"schema"`
+	Files       []File `bson:"files"`
 }
 
 type MetadataCollection struct {
@@ -53,7 +53,7 @@ type MetadataCollection struct {
 	MetadataObjects []MetadataObject `bson:"metadataObjects"`
 }
 
-type Files struct {
+type File struct {
 	FileName       string `bson:"filename"`
 	ChecksumMethod string `bson:"checksumMethod"`
 	Checksum       string `bson:"checksum"`
