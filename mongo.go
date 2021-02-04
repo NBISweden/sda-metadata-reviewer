@@ -147,11 +147,11 @@ func (c mongoClient) getAllUsers(database string, collection string) {
 	var users []User
 	cursor, err := col.Find(context.TODO(), filter)
 	if err != nil {
-		log.Info(err)
+		log.Error(err)
 	}
 	err = cursor.All(context.TODO(), &users)
 	if err != nil {
-		log.Info(err)
+		log.Error(err)
 	}
 	for _, usr := range users {
 		out, err := bson.MarshalExtJSON(usr, false, false)
@@ -200,11 +200,11 @@ func (c mongoClient) getMetadataCollections(database string, collection string, 
 	var mc []MetadataCollection
 	cursor, err := users.Find(context.TODO(), filter)
 	if err != nil {
-		log.Info(err)
+		log.Error(err)
 	}
 	err = cursor.All(context.TODO(), &mc)
 	if err != nil {
-		log.Info(err)
+		log.Error(err)
 	}
 	return mc
 
