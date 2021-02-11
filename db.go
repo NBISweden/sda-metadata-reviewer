@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"hash"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -51,12 +50,6 @@ var sqlOpen = sql.Open
 
 // logFatalf is an internal variable to ease testing
 var logFatalf = log.Fatalf
-
-// hashType returns the identification string for the hash type
-func hashType(h hash.Hash) string {
-	// TODO: Support/check type
-	return "SHA256"
-}
 
 // NewDB creates a new DB connection
 func NewDB(config DBConfig) (*SQLdb, error) {
