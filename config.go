@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"path"
 	"strings"
@@ -18,8 +19,9 @@ type ClFlags struct {
 
 // Config is a parent object for all the different configuration parts
 type Config struct {
-	mongo mongoConfig
-	s3    S3Config
+	mongo    mongoConfig
+	s3       S3Config
+	postgres DBConfig
 }
 
 // NewConfig initializes and parses the config file and/or environment using
@@ -101,10 +103,43 @@ func configS3() S3Config {
 	return s3
 }
 
+// configDatabase provides configuration for the database
+func configDatabase() (DBConfig, error) {
+	db := DBConfig{}
+
+	// All these are required
+	db.Host = viper.GetString("db.host")
+	db.Port = viper.GetInt("db.port")
+	db.User = viper.GetString("db.user")
+	db.Password = viper.GetString("db.password")
+	db.Database = viper.GetString("db.database")
+	db.SslMode = viper.GetString("db.sslmode")
+
+	// Optional settings
+	if db.SslMode == "verify-full" {
+		// Since verify-full is specified, these are required.
+		if !(viper.IsSet("db.clientCert") && viper.IsSet("db.clientKey")) {
+			return db, errors.New("when db.sslMode is set to verify-full both db.clientCert and db.clientKey are needed")
+		}
+	}
+	if viper.IsSet("db.clientKey") {
+		db.ClientKey = viper.GetString("db.clientKey")
+	}
+	if viper.IsSet("db.clientCert") {
+		db.ClientCert = viper.GetString("db.clientCert")
+	}
+	if viper.IsSet("db.cacert") {
+		db.CACert = viper.GetString("db.cacert")
+	}
+
+	return db, nil
+}
+
 func (c *Config) readConfig() {
 
 	c.mongo = configMongo()
 	c.s3 = configS3()
+	c.postgres, _ = configDatabase()
 
 	if viper.IsSet("loglevel") {
 		stringLevel := viper.GetString("loglevel")

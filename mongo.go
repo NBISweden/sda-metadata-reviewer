@@ -245,8 +245,8 @@ func transportConfigMongo(config mongoConfig) *tls.Config {
 	return cfg
 }
 
-func (c mongoClient) getFilesFromAnalysis(database string, collection string, accessionID string) (files []string) {
-	//var files []string
+func (c mongoClient) getFilesFromAnalysis(database string, collection string, accessionID string) (files []File) {
+
 	log.Debugf("Database %s is being queried using the %s collection", database, collection)
 
 	filter := bson.M{"accessionId": accessionID}
@@ -264,7 +264,7 @@ func (c mongoClient) getFilesFromAnalysis(database string, collection string, ac
 
 	for _, obj := range objects {
 		for _, file := range obj.Files {
-			files = append(files, file.FileName)
+			files = append(files, file)
 		}
 	}
 

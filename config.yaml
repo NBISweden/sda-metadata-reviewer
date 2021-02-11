@@ -6,10 +6,21 @@ mongo:
   password: "admin"
   cacert: ""
 s3:
-  url: "http://localhost"
+  url: "https://localhost"
   port: 9000
   accesskey: "access"
   secretkey: "secretkey"
   bucket: "inbox"
   chunksize: 5
+  cacert: "./dev_tools/certs/ca.pem"
+db:
+  host: "localhost"
+  port: 5432
+  user: "lega_in"
+  password: "lega_in"
+  database: "lega"
+  cacert: "./dev_tools/certs/ca.pem"
+  clientCert: "./dev_tools/certs/client.pem"
+  clientKey: "./dev_tools/certs/client-key.pem"
+  sslmode: "verify-ca"
 loglevel: "info"
