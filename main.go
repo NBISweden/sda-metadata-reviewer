@@ -88,33 +88,58 @@ func main() {
 		{
 			client.getAllUsers("users", "user")
 		}
-	case "cross-ref":
+	case "cross-ref-inbox":
 		{
+			log.Info("Cross reference started")
 			var analysisAccession string
 			if metadataFilter.AccessionID != "" {
 				analysisAccession = metadataFilter.AccessionID
 			} else if metadataFilter.FolderID != "" {
 				analysisAccession = client.getAccessionFromAnalysis("folders", "folder", metadataFilter.FolderID)
-				//log.Infof(analysisAccession)
 			}
-
 			files := client.getFilesFromAnalysis("objects", "analysis", analysisAccession)
 
 			for _, file := range files {
-				exists, err := inbox.GetFileSize(file)
+				exists, err := inbox.GetFileSize(file.FileName)
 				if err != nil {
 					log.Debugf("Error accessing s3: %s", err)
 					break
 				}
 				if exists {
-					log.Infof("File %s exists", file)
+					log.Infof("File %s exists", file.FileName)
 				} else {
-					log.Infof("File %s does not exist", file)
+					log.Infof("File %s does not exist", file.FileName)
 				}
 			}
 		}
+	case "cross-ref-ingestion":
+		{
+			log.Info("Cross reference started")
+			postgres, err := NewDB(conf.postgres)
+			if err != nil {
+				log.Error(err)
+			}
 
+			var analysisAccession string
+			if metadataFilter.AccessionID != "" {
+				analysisAccession = metadataFilter.AccessionID
+			} else if metadataFilter.FolderID != "" {
+				analysisAccession = client.getAccessionFromAnalysis("folders", "folder", metadataFilter.FolderID)
+				log.Infof(analysisAccession)
+			}
+			files := client.getFilesFromAnalysis("objects", "analysis", analysisAccession)
+
+			for _, file := range files {
+				err := postgres.GetChecksum(file)
+				if err != nil {
+					log.Infof("File %s does not exists", file.FileName)
+				} else {
+					log.Infof("File %s exists", file.FileName)
+				}
+			}
+		}
 	}
+
 	client.disconnectFromMongo()
 
 }

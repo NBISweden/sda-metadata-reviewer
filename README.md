@@ -89,7 +89,13 @@ or with the `accessionId` of the `analysis` using the following filter:
     "accessionId": "9fd29e35a82e49d999528a5f3c6d49aa"
 }
 ```
-and running the following command:
+to cross reference based on the file names run the following command:
 ```shell
-./main --action cross-ref
+./main --action cross-ref-inbox
 ```
+to cross reference based on the checksums of the files run the following command:
+```shell
+./main --action cross-ref-ingestion
+```
+
+- Fix docker-compose for postgres and s3
